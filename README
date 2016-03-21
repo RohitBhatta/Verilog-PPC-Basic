@@ -1,0 +1,83 @@
+Due date: Sunday 3/27/2016 @11:59pm
+
+Objective: Use Verilog to implement a single-cycle PowerPC subset
+
+Assignment: 
+
+(1) Finish the implementation of the following PowerPC instructions in ppc.v
+
+    add
+    or
+    addi
+    b
+    bc
+    bclr
+    ld
+    ldu
+    sc (see notes below)
+
+
+(2) Add a new test case.
+
+    - Your test should be added in a file named <csid>.bin
+    - The expected output should be in a file named <csid>.ok
+
+Unlike previous assignments, you're only given one non-comprehensive test case and
+you're expected to generate your own tests.
+
+Your score will depend on:
+
+    - Your design's ability to pass your peers' test cases
+    - Your test case's ability to break you peers' implementations
+
+System call emulation
+~~~~~~~~~~~~~~~~~~~~~~
+
+Your implementation should emulate the sc instruction using the following rules
+
+- r0 contains the system call number
+
+    0 => print the ASCII character in the low-order 8 bits of r3
+    1 => stop the simulation ($finish)
+    2 => print the value of r3 in hex
+
+Files and modules:
+~~~~~~~~~~~~~~~~~~
+
+mem.v contains the simple memory implementation (2 read ports)
+clock.v contains the clock generator, it also contains logic to terminate the
+    simulation after 1000 cycles
+ppc.v your implementation. You must use mem for your memory and clock for your
+    clock
+
+Please leave mem.v and clock.v alone, feel free to change ppc.v
+
+To compile
+~~~~~~~~~~
+
+    make
+
+To test
+~~~~~~~
+
+    make clean test
+
+    # expected output in hello.ok, ...
+    # actual output in hello.out, ...
+
+
+To run one test
+~~~~~~~~~~~~~~~
+
+    make clean hello.res
+
+    hello.ok  ... expected output
+    hello.out ... actual output
+    hello.raw ... raw with debug output
+    hello.vcd ... waveform file
+
+To look at waveforms:
+~~~~~~~~~~~~~~~~~~~~~
+
+    make clean test
+    gtkwave hello.vcd
