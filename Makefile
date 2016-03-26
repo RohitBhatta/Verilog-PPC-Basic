@@ -1,6 +1,7 @@
 VFILES=$(wildcard *.v)
+OKFILES=$(wildcard *.ok)
+TESTS=$(subst .ok,,$(OKFILES))
 
-TESTS=hello
 OUTS=$(addsuffix .out,$(TESTS))
 RESULTS=$(addsuffix .res,$(TESTS))
 
