@@ -112,9 +112,9 @@ module main();
 
     //Branching
     wire [0:63]branchTarget = allBc ? (~isAA ? (pc + extendBD) : extendBD) : (allB ? ((~isAA ? (pc + extendLI) : extendLI)) : extendLR);
-    wire less = (bo == 1 & bi == 0 & cr[0] != 1) | (bo == 3 & bi == 0 & cr[0] == 1);
-    wire greater = (bo == 1 & bi == 1 & cr[1] != 1) | (bo == 3 & bi == 1 & cr[1] == 1);
-    wire equals = (bo == 1 & bi == 2 & cr[2] != 1) | (bo == 3 & bi == 2 & cr[2] == 1);
+    wire less = (bo[0:2] == 1 & bi == 0 & cr[0] != 1) | (bo[0:2] == 3 & bi == 0 & cr[0] == 1);
+    wire greater = (bo[0:2] == 1 & bi == 1 & cr[1] != 1) | (bo[0:2] == 3 & bi == 1 & cr[1] == 1);
+    wire equals = (bo[0:2] == 1 & bi == 2 & cr[2] != 1) | (bo[0:2] == 3 & bi == 2 & cr[2] == 1);
     wire isBranching = allB | ((allBc | allBclr) & (less | greater | equals));
 
     wire updateRegs = allAdd | allOr | isAddi;
