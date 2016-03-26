@@ -106,7 +106,7 @@ module main();
 
     //Results
     wire [0:63]addRes = gprs[ra] + gprs[rb];
-    wire [0:63]orRes = gprs[rt] | gprs[rb];
+    wire [0:63]orRes = (rb == 0) ? gprs[rt] : (gprs[rt] | gprs[rb]);
     wire [0:63]addiRes = (ra == 0) ? simm : (gprs[ra] + simm);
     wire [0:63]ldRes = readData1;
 
@@ -115,7 +115,7 @@ module main();
     wire less = (bo == 1 & bi == 0 & cr[0] != 1) | (bo == 3 & bi == 0 & cr[0] == 1);
     wire greater = (bo == 1 & bi == 1 & cr[1] != 1) | (bo == 3 & bi == 1 & cr[1] == 1);
     wire equals = (bo == 1 & bi == 2 & cr[2] != 1) | (bo == 3 & bi == 1 & cr[2] == 1);
-    wire isBranching = allB | (allBc & (less | greater | equals)) | (allBclr & (less | greater | equals));
+    wire isBranching = allB | ((allBc | allBclr) & (less | greater | equals));
 
     wire updateRegs = allAdd | allOr | isAddi;
     wire updateLink = (allB & isLK) | (allBc & isLK) | (allBclr & isLK);
