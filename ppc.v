@@ -30,7 +30,7 @@ module main();
         pc <= nextPC;
     end
 
-    assign nextPC = isBranching ? branchTarget : pc + 4;
+    assign nextPC = isBranching ? branchTarget : (pc + 4);
 
     assign readAddr0 = pc[0:60];
     wire [0:31]inst = pc[61] ? readData0[32:63] : readData0[0:31];
@@ -79,8 +79,8 @@ module main();
     wire isBca = (op == 16) & isAA & ~isLK;
     wire isBcl = (op == 16) & ~isAA & isLK;
     wire isBcla = (op == 16) & isAA & isLK;
-    wire isBclr = (op == 19) & ~isLK;
-    wire isBclrl = (op == 19) & isLK;
+    wire isBclr = (op == 19) & (xop10 == 16) & ~isLK;
+    wire isBclrl = (op == 19) & (xop10 == 16) & isLK;
     wire isLd = (op == 58) & ~isLK;
     wire isLdu = (op == 58) & isLK;
     wire isSc = op == 17;
@@ -111,7 +111,7 @@ module main();
     wire [0:63]ldRes = readData1;
 
     //Branching
-    wire [0:63]branchTarget = allBc ? (isAA ? (pc + extendBD) : extendBD) : (allB ? ((isAA ? (pc + extendLI) : extendLI)) : extendLR);
+    wire [0:63]branchTarget = allBc ? (~isAA ? (pc + extendBD) : extendBD) : (allB ? ((~isAA ? (pc + extendLI) : extendLI)) : extendLR);
     wire less = (bo == 1 & bi == 0 & cr[0] != 1) | (bo == 3 & bi == 0 & cr[0] == 1);
     wire greater = (bo == 1 & bi == 1 & cr[1] != 1) | (bo == 3 & bi == 1 & cr[1] == 1);
     wire equals = (bo == 1 & bi == 2 & cr[2] != 1) | (bo == 3 & bi == 1 & cr[2] == 1);
