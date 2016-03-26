@@ -117,94 +117,13 @@ module main();
     wire equals = (bo == 1 & bi == 2 & cr != 2) | (bo == 3 & bi == 1 & cr == 2);
     wire isBranching = allB | (allBc & (less | greater | equals)) | (allBclr & (less | greater | equals));
 
-    wire updateRegs = allAdd | allOr | isAddi | isLd | isLdu;
+    wire updateRegs = allAdd | allOr | isAddi;
     wire updateLink = (allB & isLK) | (allBc & isLK) | (allBclr & isLK);
-    //Fix this line
-    //Take into account ldu which updates both ra and rt
     wire [0:4]targetReg = isOr ? ra : rt;
     wire [0:4]targetRegLdu = ra;
     wire [0:63]targetVal;
     wire [0:63]targetValLdu;
     wire [0:63]targetLink = pc + 4;
-
-    /*always @(posedge clk) begin
-        if (isAdd) begin
-            $display ("add");
-            targetVal <= gprs[ra] + gprs[rb];
-        end else if (isAddDot) begin
-            $display ("add.");
-            targetVal <= gprs[ra] + gprs[rb];
-            //Update cr
-        end else if (isAddO) begin
-            $display ("addo");
-            targetVal <= gprs[ra] + gprs[rb];
-            //Update xer
-        end else if (isAddODot) begin
-            targetVal <= gprs[ra] + gprs[rb];
-            $display ("addo.");
-            //Update cr and xer
-        end else if (isOr) begin
-            targetVal <= gprs[rt] | gprs[rb];
-            $display ("or");
-        end else if (isOrDot) begin
-            targetVal <= gprs[rt] | gprs[rb];
-            $display ("or.");
-            //Update cr 
-        end else if (isAddi) begin
-            //Make sure to sign extend simm
-            $display ("addi");
-            $display (ra);
-            $display (gprs[ra]);
-            $display (addr);
-            targetVal <= gprs[ra] + simm;
-        end else if (isB) begin
-            branchTarget <= pc + addr;
-            $display ("b");
-        end else if (isBa) begin
-            branchTarget <= addr;
-            $display ("ba");
-        end else if (isBl) begin
-            branchTarget <= pc + addr;
-            $display ("bl");
-            targetLink <= pc + 4;
-        end else if (isBla) begin
-            branchTarget <= addr;
-            $display ("bla");
-            targetLink <= pc + 4;
-        end else if (isBc) begin
-            //Do stuff here
-            $display ("bc");
-        end else if (isBca) begin
-            //Do stuff here
-            $display ("bca");
-        end else if (isBcl) begin
-            //Do stuff here
-            $display ("bcl");
-        end else if (isBcla) begin
-            //Do stuff here
-            $display ("bcla");
-        end else if (isBclr) begin
-            //Do stuff here
-            $display ("bclr");
-        end else if (isBclrl) begin
-            //Do stuff here
-            $display ("bclrl");
-        end else if (isLd) begin
-            //Do stuff here
-            $display ("ld");
-        end else if (isLdu) begin
-            //Do stuff here
-            $display ("ldu");
-        end else if (isSc) begin
-            //Do stuff here
-            $display ("sc");
-        end
-    end*/
-
-    //Sign extend li by 2 bits
-    /*always @(posedge clk) begin
-        addr[0:25] <= {li[0:23], 2'b00};
-    end*/
 
     //Add, or, addi
     assign targetVal = isAdd ? addRes : (isOr ? orRes : addiRes);
