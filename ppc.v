@@ -25,14 +25,9 @@ module main();
     /*********************************/
     reg [0:63]pc = 0;
     wire [0:63]nextPC;
-    reg [0:63]ctr;
 
     always @(posedge clk) begin
         pc <= nextPC;
-    end
-
-    always @(posedge clk) begin
-        ctr <= (bo[2]) ? ctr : (ctr - 1);
     end
 
     assign nextPC = isBranching ? branchTarget : pc + 4;
@@ -51,13 +46,16 @@ module main();
     wire [0:15]imm = inst[16:31];
     wire [0:63]simm = {{48{imm[0]}}, imm};
     wire [0:23]li = inst[6:29];
+    wire [0:63]extendLI = {{40{li[0]}}, li};
     wire aa = inst[29:30];
     wire lk = inst[30:31];
     wire [0:4]bo = inst[6:10];
     wire [0:4]bi = inst[6:10];
     wire [0:13]bd = inst[16:29];
+    wire [0:63]extendBD = {{{48{bd[0]}}, bd[0:13]}, 2'b00};
     wire [0:13]ds = inst[16:29];
     wire [0:63]extendDS = {{{48{ds[0]}}, ds}, 2'b00};
+    wire [0:63]extendLR = {lr[0:61], 2'b00};
 
     //Mnemonic specifics
     wire isOE = oe;
@@ -86,7 +84,7 @@ module main();
     wire isLd = (op == 58) & ~isLK;
     wire isLdu = (op == 58) & isLK;
     wire isSc = op == 17;
-    wire isNone = ~(isAdd | isOr | isAddi | isB | isBc | isBclr | isLd | isLdu | isSc); //Unexpected instruction
+    wire isNone = ~(allAdd | allOr | isAddi | allB | allBc | allBclr | isLd | isLdu | isSc); //Unexpected instruction
 
     //Combined instructions
     wire allAdd = isAdd | isAddDot | isAddO | isAddODot;
@@ -113,12 +111,11 @@ module main();
     wire [0:63]ldRes = readData1;
 
     //Branching
-    wire [0:63]addr = {{{48{bd[0]}}, bd[0:13]}, 2'b00};
-    //wire [0:63]branchTarget = (aa) ? (pc + addr) : addr;
-    reg [0:63]branchTarget;
-    wire ctr_ok = bo[2] | ((ctr == 1)^ bo[3]);
-    wire cond_ok = bo[4] | (cr[bi + 32] == bo[1]);
-    wire isBranching = (allB | allBc | allBclr) & ctr_ok & cond_ok;
+    wire [0:63]branchTarget = allBc ? (isAA ? (pc + extendBD) : extendBD) : (allB ? ((isAA ? (pc + extendLI) : extendLI)) : extendLR);
+    wire less = (bo == 1 & bi == 0 & cr != 8) | (bo == 3 & bi == 0 & cr ==8);
+    wire greater = (bo == 1 & bi == 1 & cr != 4) | (bo == 3 & bi == 1 & cr == 4);
+    wire equals = (bo == 1 & bi == 2 & cr != 2) | (bo == 3 & bi == 1 & cr == 2);
+    wire isBranching = allB | (allBc & (less | greater | equals)) | (allBclr & (less | greater | equals));
 
     wire updateRegs = allAdd | allOr | isAddi | isLd | isLdu;
     wire updateLink = (allB & isLK) | (allBc & isLK) | (allBclr & isLK);
@@ -128,7 +125,7 @@ module main();
     wire [0:4]targetRegLdu = ra;
     wire [0:63]targetVal;
     wire [0:63]targetValLdu;
-    reg [0:63]targetLink;
+    wire [0:63]targetLink = pc + 4;
 
     /*always @(posedge clk) begin
         if (isAdd) begin
