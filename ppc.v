@@ -119,18 +119,18 @@ module main();
 
     wire updateRegs = allAdd | allOr | isAddi;
     wire updateLink = (allB & isLK) | (allBc & isLK) | (allBclr & isLK);
+    wire updateCR = (allAdd & isRC) | isOrDot;
     wire [0:4]targetReg = isOr ? ra : rt;
     wire [0:4]targetRegLdu = ra;
-    wire [0:63]targetVal;
-    wire [0:63]targetValLdu;
+    wire [0:63]targetVal = isAdd ? addRes : (isOr ? orRes : addiRes);
     wire [0:63]targetLink = pc + 4;
 
-    //Add, or, addi
-    assign targetVal = isAdd ? addRes : (isOr ? orRes : addiRes);
+    wire isLess = targetVal < 0;
+    wire isGreater = targetVal > 0;
+    wire isEqual = targetVal == 0;
 
     //System call
     wire [0:63]scNum = gprs[0];
-    //Change to ASCII character
     wire [0:7]print0 = gprs[3][56:63];
     wire [0:63]print2 = gprs[3];
 
@@ -151,13 +151,25 @@ module main();
         end
     end
 
+    //Update conditional register
+    always @(posedge clk) begin
+        if (updateCR & isLess) begin
+            cr[0] <= 1;
+        end else if (updateCR & isGreater) begin
+            cr[1] <= 1;
+        end else if (updateCR & isEqual) begin
+            cr[2] <= 1;
+        //Remember to do overflow
+        end
+    end
+
     //Ld, ldu
     always @(posedge clk) begin
         if (isLd) begin
             gprs[targetReg] <= ldRes;
         end else if (isLdu) begin
             gprs[targetReg] <= ldRes;
-            gprs[targetRegLdu] <= targetValLdu;
+            gprs[targetRegLdu] <= lduAddr;
         end
     end
 
