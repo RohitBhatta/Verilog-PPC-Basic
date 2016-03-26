@@ -99,6 +99,7 @@ module main();
     //Special purpose registers
     reg [0:63]lr;
     reg [0:3]cr;
+    reg [0:1]xer;
 
     wire [0:63]ldAddr = (ra == 0) ? extendDS : (gprs[ra] + extendDS);
     wire [0:63]lduAddr = (ra == 0 | ra == rt) ? (pc + 4) : (gprs[ra] + extendDS);
@@ -120,6 +121,7 @@ module main();
     wire updateRegs = allAdd | allOr | isAddi;
     wire updateLink = (allB & isLK) | (allBc & isLK) | (allBclr & isLK);
     wire updateCR = (allAdd & isRC) | isOrDot;
+    wire updateXER = allAdd & isOE;
     wire [0:4]targetReg = isOr ? ra : rt;
     wire [0:4]targetRegLdu = ra;
     wire [0:63]targetVal = isAdd ? addRes : (isOr ? orRes : addiRes);
@@ -128,6 +130,7 @@ module main();
     wire isLess = targetVal < 0;
     wire isGreater = targetVal > 0;
     wire isEqual = targetVal == 0;
+    wire isOver = (isLess & (gprs[ra] >= 0 & gprs[rb] >= 0)) | (isGreater & (gprs[ra] <= 0 & gprs[rb] <= 0));
 
     //System call
     wire [0:63]scNum = gprs[0];
@@ -159,7 +162,10 @@ module main();
             cr[1] <= 1;
         end else if (updateCR & isEqual) begin
             cr[2] <= 1;
-        //Remember to do overflow
+        end else if (updateXER & isOver) begin
+            xer[1] <= 1;
+        end else if (updateXER & ~isOver) begin
+            xer[1] <= 0;
         end
     end
 
