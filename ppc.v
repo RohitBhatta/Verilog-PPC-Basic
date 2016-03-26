@@ -46,13 +46,13 @@ module main();
     wire [0:15]imm = inst[16:31];
     wire [0:63]simm = {{48{imm[0]}}, imm};
     wire [0:23]li = inst[6:29];
-    wire [0:63]extendLI = {{40{li[0]}}, li};
+    wire [0:63]extendLI = {{{38{li[0]}}, li}, 2'b00};
     wire aa = inst[29:30];
     wire lk = inst[30:31];
     wire [0:4]bo = inst[6:10];
     wire [0:4]bi = inst[6:10];
     wire [0:13]bd = inst[16:29];
-    wire [0:63]extendBD = {{{48{bd[0]}}, bd[0:13]}, 2'b00};
+    wire [0:63]extendBD = {{{48{bd[0]}}, bd}, 2'b00};
     wire [0:13]ds = inst[16:29];
     wire [0:63]extendDS = {{{48{ds[0]}}, ds}, 2'b00};
     wire [0:63]extendLR = {lr[0:61], 2'b00};
@@ -99,7 +99,7 @@ module main();
     //Special purpose registers
     reg [0:63]lr;
     reg [0:3]cr;
-    reg [0:1]xer;
+    reg xer;
 
     wire [0:63]ldAddr = (ra == 0) ? extendDS : (gprs[ra] + extendDS);
     wire [0:63]lduAddr = (ra == 0 | ra == rt) ? (pc + 4) : (gprs[ra] + extendDS);
@@ -163,9 +163,9 @@ module main();
         end else if (updateCR & isEqual) begin
             cr[2] <= 1;
         end else if (updateXER & isOver) begin
-            xer[1] <= 1;
+            xer <= 1;
         end else if (updateXER & ~isOver) begin
-            xer[1] <= 0;
+            xer <= 0;
         end
     end
 
