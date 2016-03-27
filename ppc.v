@@ -46,14 +46,18 @@ module main();
     wire [0:4]rt = inst[6:10];
     wire [0:4]ra = inst[11:15];
     wire [0:4]rb = inst[16:20];
-    wire oe = inst[20:21];
-    wire rc = inst[30:31];
+    //wire oe = inst[20:21];
+    //wire rc = inst[30:31];
+    wire oe = inst[21];
+    wire rc = inst[31];
     wire [0:15]imm = inst[16:31];
     wire [0:63]simm = {{48{imm[0]}}, imm};
     wire [0:23]li = inst[6:29];
     wire [0:63]extendLI = {{{38{li[0]}}, li}, 2'b00};
-    wire aa = inst[29:30];
-    wire lk = inst[30:31];
+    //wire aa = inst[29:30];
+    //wire lk = inst[30:31];
+    wire aa = inst[30];
+    wire lk = inst[31];
     wire [0:4]bo = inst[6:10];
     wire [0:4]bi = inst[11:15];
     wire [0:13]bd = inst[16:29];
@@ -103,7 +107,7 @@ module main();
 
     //Special purpose registers
     reg [0:63]lr = 0;
-    reg [0:63]cr = 0;
+    reg [0:31]cr = 0;
     reg xer = 0;
 
     wire [0:63]ldAddr = (ra == 0) ? extendDS : (gprs[ra] + extendDS);
@@ -120,7 +124,7 @@ module main();
     //Branching
     wire [0:63]branchTarget = allB ? (isAA ? extendLI : (pc + extendLI)) : (allBc ? (isAA ? extendBD : (pc + extendBD)) : extendLR);
     wire ctr_ok = bo[2] | ((ctr != 1) ^ bo[3]);
-    wire cond_ok = bo[0] | (cr[bi + 32] == bo[1]);
+    wire cond_ok = bo[0] | (cr[bi] == bo[1]);
     wire isBranching = allB | ((allBc | allBclr) & ctr_ok & cond_ok);
 
     wire updateRegs = allAdd | allOr | isAddi;
@@ -134,7 +138,7 @@ module main();
     wire isLess = targetVal[0];
     wire isGreater = ~targetVal[0] & targetVal != 0;
     wire isEqual = targetVal == 0;
-    wire isOver = (isLess & (gprs[ra] >= 0 & gprs[rb] >= 0)) | (isGreater & (gprs[ra] <= 0 & gprs[rb] <= 0));
+    wire isOver = (isLess & (~gprs[ra][0] & ~gprs[rb][0])) | (isGreater & (gprs[ra][0] & gprs[rb][0]));
     //wire isOver = (targetVal[0] == targetVal[1]) ? 1 : 0;
 
     //System call
@@ -161,16 +165,30 @@ module main();
 
     //Update conditional register
     always @(posedge clk) begin
-        if (updateCR & isLess) begin
-            cr[32] <= 1;
-        end else if (updateCR & isGreater) begin
-            cr[33] <= 1;
-        end else if (updateCR & isEqual) begin
-            cr[34] <= 1;
-        end else if ((updateXER & isOver) | xer) begin
-            cr[35] <= 1;
+        if (updateCR) begin
+            cr[0] <= targetVal[0];
+            cr[1] <= ~targetVal[0] & targetVal != 0;
+            cr[2] <= targetVal == 0;
+            cr[3] <= isOver | xer;
         end
     end
+    /*always @(posedge clk) begin
+        if (updateCR & isLess) begin
+            cr[0] <= 1;
+            cr[1] <= 0;
+            cr[2] <= 0;
+        end else if (updateCR & isGreater) begin
+            cr[1] <= 1;
+            cr[0] <= 0;
+            cr[2] <= 0;
+        end else if (updateCR & isEqual) begin
+            cr[2] <= 1;
+            cr[0] <= 0;
+            cr[1] <= 0;
+        end else if ((updateXER & isOver) | xer) begin
+            cr[3] <= 1;
+        end
+    end*/
 
     //Ld, ldu
     always @(posedge clk) begin
