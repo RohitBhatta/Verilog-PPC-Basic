@@ -165,8 +165,8 @@ module main();
             cr[0] <= isLess;
             cr[1] <= isGreater;
             cr[2] <= isEqual;
-            //cr[3] <= isOver | xer;
-            cr[3] <= xer;
+            cr[3] <= isOver | xer;
+            //cr[3] <= xer;
         end
     end
 
