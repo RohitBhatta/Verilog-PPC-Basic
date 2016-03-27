@@ -55,7 +55,7 @@ module main();
     wire aa = inst[29:30];
     wire lk = inst[30:31];
     wire [0:4]bo = inst[6:10];
-    wire [0:4]bi = inst[6:10];
+    wire [0:4]bi = inst[11:15];
     wire [0:13]bd = inst[16:29];
     wire [0:63]extendBD = {{{48{bd[0]}}, bd}, 2'b00};
     wire [0:13]ds = inst[16:29];
@@ -104,7 +104,7 @@ module main();
     //Special purpose registers
     reg [0:63]lr = 0;
     reg [0:63]cr = 0;
-    wire xer = isOver ? 1 : xer;
+    reg xer = 0;
 
     wire [0:63]ldAddr = (ra == 0) ? extendDS : (gprs[ra] + extendDS);
     //wire [0:63]lduAddr = (ra == 0 | ra == rt) ? (pc + 4) : (gprs[ra] + extendDS);
@@ -118,13 +118,8 @@ module main();
     wire [0:63]ldRes = readData1;
 
     //Branching
-    //wire [0:63]branchTarget = allBc ? (~isAA ? (pc + extendBD) : extendBD) : (allB ? ((~isAA ? (pc + extendLI) : extendLI)) : extendLR);
-    /*wire less = (bo[0:2] == 1 & bi == 0 & cr[0] != 1) | (bo[0:2] == 3 & bi == 0 & cr[0] == 1);
-    wire greater = (bo[0:2] == 1 & bi == 1 & cr[1] != 1) | (bo[0:2] == 3 & bi == 1 & cr[1] == 1);
-    wire equals = (bo[0:2] == 1 & bi == 2 & cr[2] != 1) | (bo[0:2] == 3 & bi == 2 & cr[2] == 1);
-    wire isBranching = allB | ((allBc | allBclr) & (less | greater | equals));*/
     wire [0:63]branchTarget = allB ? (isAA ? extendLI : (pc + extendLI)) : (allBc ? (isAA ? extendBD : (pc + extendBD)) : extendLR);
-    wire ctr_ok = bo[2] | ((ctr != 0) ^ bo[3]);
+    wire ctr_ok = bo[2] | ((ctr != 1) ^ bo[3]);
     wire cond_ok = bo[0] | (cr[bi + 32] == bo[1]);
     wire isBranching = allB | ((allBc | allBclr) & ctr_ok & cond_ok);
 
@@ -135,7 +130,6 @@ module main();
     wire [0:4]targetReg = isOr ? ra : rt;
     wire [0:4]targetRegLdu = ra;
     wire [0:64]targetVal = isAdd ? addRes : (isOr ? orRes : addiRes);
-    wire [0:63]targetLink = pc + 4;
 
     wire isLess = targetVal[1:64] < 0;
     wire isGreater = targetVal[1:64] > 0;
@@ -191,13 +185,18 @@ module main();
     //Update lr
     always @(posedge clk) begin
         if (updateLink) begin
-            lr <= targetLink;
+            lr <= pc + 4;
         end
     end
 
     //Update ctr
     always @(posedge clk) begin
         ctr <= (bo[2] == 0) ? (ctr - 1) : ctr;
+    end
+
+    //Update xer
+    always @(posedge clk) begin
+        xer <= isOver ? 1 : xer;
     end
 
 endmodule
