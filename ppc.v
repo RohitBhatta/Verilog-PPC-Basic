@@ -24,6 +24,7 @@ module main();
     /* Your implementation goes here */
     /*********************************/
     reg [0:63]pc = 0;
+    reg [0:63]ctr;
     wire [0:63]nextPC;
 
     always @(posedge clk) begin
@@ -98,7 +99,8 @@ module main();
 
     //Special purpose registers
     reg [0:63]lr;
-    reg [0:3]cr;
+    //Might need to extend this or just make it 4 bits
+    reg [0:63]cr;
     reg xer;
 
     wire [0:63]ldAddr = (ra == 0) ? extendDS : (gprs[ra] + extendDS);
@@ -113,10 +115,13 @@ module main();
 
     //Branching
     wire [0:63]branchTarget = allBc ? (~isAA ? (pc + extendBD) : extendBD) : (allB ? ((~isAA ? (pc + extendLI) : extendLI)) : extendLR);
-    wire less = (bo[0:2] == 1 & bi == 0 & cr[0] != 1) | (bo[0:2] == 3 & bi == 0 & cr[0] == 1);
+    /*wire less = (bo[0:2] == 1 & bi == 0 & cr[0] != 1) | (bo[0:2] == 3 & bi == 0 & cr[0] == 1);
     wire greater = (bo[0:2] == 1 & bi == 1 & cr[1] != 1) | (bo[0:2] == 3 & bi == 1 & cr[1] == 1);
     wire equals = (bo[0:2] == 1 & bi == 2 & cr[2] != 1) | (bo[0:2] == 3 & bi == 2 & cr[2] == 1);
-    wire isBranching = allB | ((allBc | allBclr) & (less | greater | equals));
+    wire isBranching = allB | ((allBc | allBclr) & (less | greater | equals));*/
+    wire ctr_ok = bo[2] | ((ctr != 0) ^ bo[3]);
+    wire cond_ok = bo[0] | (cr[bi] == bo[1]);
+    wire isBranching = allB | ((allBc | allBclr) & ctr_ok & cond_ok);
 
     wire updateRegs = allAdd | allOr | isAddi;
     wire updateLink = (allB & isLK) | (allBc & isLK) | (allBclr & isLK);
@@ -184,6 +189,11 @@ module main();
         if (updateLink) begin
             lr <= targetLink;
         end
+    end
+
+    //Update ctr
+    always @(posedge clk) begin
+        ctr <= bo[2] ? ctr : (ctr - 1);
     end
 
 endmodule
