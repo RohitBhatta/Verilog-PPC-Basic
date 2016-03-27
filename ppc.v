@@ -43,19 +43,16 @@ module main();
     wire [0:5]op = inst[0:5];
     wire [0:8]xop9 = inst[22:30];
     wire [0:9]xop10 = inst[21:30];
+    wire [0:1]xop2 = inst[30:31];
     wire [0:4]rt = inst[6:10];
     wire [0:4]ra = inst[11:15];
     wire [0:4]rb = inst[16:20];
-    //wire oe = inst[20:21];
-    //wire rc = inst[30:31];
     wire oe = inst[21];
     wire rc = inst[31];
     wire [0:15]imm = inst[16:31];
     wire [0:63]simm = {{48{imm[0]}}, imm};
     wire [0:23]li = inst[6:29];
     wire [0:63]extendLI = {{{38{li[0]}}, li}, 2'b00};
-    //wire aa = inst[29:30];
-    //wire lk = inst[30:31];
     wire aa = inst[30];
     wire lk = inst[31];
     wire [0:4]bo = inst[6:10];
@@ -90,8 +87,8 @@ module main();
     wire isBcla = (op == 16) & isAA & isLK;
     wire isBclr = (op == 19) & (xop10 == 16) & ~isLK;
     wire isBclrl = (op == 19) & (xop10 == 16) & isLK;
-    wire isLd = (op == 58) & ~isLK;
-    wire isLdu = (op == 58) & isLK;
+    wire isLd = (op == 58) & (xop2 == 0) & ~isLK;
+    wire isLdu = (op == 58) & (xop2 == 1) & isLK;
     wire isSc = op == 17;
     wire isNone = ~(allAdd | allOr | isAddi | allB | allBc | allBclr | isLd | isLdu | isSc); //Unexpected instruction
 
@@ -110,8 +107,8 @@ module main();
     reg [0:31]cr = 0;
     reg xer = 0;
 
+    //Addresses
     wire [0:63]ldAddr = (ra == 0) ? extendDS : (gprs[ra] + extendDS);
-    //wire [0:63]lduAddr = (ra == 0 | ra == rt) ? (pc + 4) : (gprs[ra] + extendDS);
     wire [0:63]lduAddr = gprs[ra] + extendDS;
     assign readAddr1 = isLd ? ldAddr[0:60] : lduAddr[0:60];
 
