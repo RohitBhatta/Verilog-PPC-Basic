@@ -131,15 +131,14 @@ module main();
     wire updateLink = (allB & isLK) | (allBc & isLK) | (allBclr & isLK);
     wire updateCR = (allAdd & isRC) | isOrDot;
     wire updateXER = allAdd & isOE;
-    wire [0:4]targetReg = isOr ? ra : rt;
+    wire [0:4]targetReg = allOr ? ra : rt;
     wire [0:4]targetRegLdu = ra;
-    wire [0:63]targetVal = isAdd ? addRes : (isOr ? orRes : addiRes);
+    wire [0:63]targetVal = allAdd ? addRes : (allOr ? orRes : addiRes);
 
     wire isLess = targetVal[0];
     wire isGreater = ~targetVal[0] & targetVal != 0;
     wire isEqual = targetVal == 0;
     wire isOver = (isLess & (~gprs[ra][0] & ~gprs[rb][0])) | (isGreater & (gprs[ra][0] & gprs[rb][0]));
-    //wire isOver = (targetVal[0] == targetVal[1]) ? 1 : 0;
 
     //System call
     wire [0:63]scNum = gprs[0];
@@ -154,8 +153,8 @@ module main();
         end else if (isSc & scNum == 2) begin
             $display("%h", print2);
         end
-    end    
-    
+    end
+ 
     //Update target register
     always @(posedge clk) begin
         if (updateRegs) begin
@@ -166,29 +165,12 @@ module main();
     //Update conditional register
     always @(posedge clk) begin
         if (updateCR) begin
-            cr[0] <= targetVal[0];
-            cr[1] <= ~targetVal[0] & targetVal != 0;
-            cr[2] <= targetVal == 0;
+            cr[0] <= isLess;
+            cr[1] <= isGreater;
+            cr[2] <= isEqual;
             cr[3] <= isOver | xer;
         end
     end
-    /*always @(posedge clk) begin
-        if (updateCR & isLess) begin
-            cr[0] <= 1;
-            cr[1] <= 0;
-            cr[2] <= 0;
-        end else if (updateCR & isGreater) begin
-            cr[1] <= 1;
-            cr[0] <= 0;
-            cr[2] <= 0;
-        end else if (updateCR & isEqual) begin
-            cr[2] <= 1;
-            cr[0] <= 0;
-            cr[1] <= 0;
-        end else if ((updateXER & isOver) | xer) begin
-            cr[3] <= 1;
-        end
-    end*/
 
     //Ld, ldu
     always @(posedge clk) begin
@@ -218,6 +200,28 @@ module main();
     always @(posedge clk) begin
         if (updateXER) begin
             xer <= isOver | xer;
+        end
+    end
+
+    always @(posedge clk) begin
+        if (allB | allBc | allBclr) begin
+            /*$display("%s%d\n", "cr[0]: ", cr[0]);
+            $display("%s%d\n", "cr[1]: ", cr[1]);
+            $display("%s%d\n", "cr[2]: ", cr[2]);
+            $display("%s%d\n", "cr[3]: ", cr[3]);*/
+            /*$display("%s%d\n", "targetVal: ", targetVal);
+            $display("%s%d\n", "targetReg: ", targetReg);
+            $display("%s%d\n", "addRes: ", addRes);
+            $display("%s%d\n", "gprs[4]: ", gprs[4]);*/
+            //$display("%s%d\n", "gprs[12]: ", gprs[12]);
+        end
+    end
+
+    always @(posedge clk) begin
+        if (allAdd) begin
+            /*$display("%s%d\n", "gprs[3]: ", gprs[3]);
+            $display("%s%d\n", "gprs[4]: ", gprs[4]);
+            $display("%s%d\n", "gprs[5]: ", gprs[5]);*/
         end
     end
 
