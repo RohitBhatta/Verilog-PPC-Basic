@@ -103,7 +103,8 @@ module main();
     reg xer;
 
     wire [0:63]ldAddr = (ra == 0) ? extendDS : (gprs[ra] + extendDS);
-    wire [0:63]lduAddr = (ra == 0 | ra == rt) ? (pc + 4) : (gprs[ra] + extendDS);
+    //wire [0:63]lduAddr = (ra == 0 | ra == rt) ? (pc + 4) : (gprs[ra] + extendDS);
+    wire [0:63]lduAddr = gprs[ra] + extendDS;
     assign readAddr1 = isLd ? ldAddr[0:60] : lduAddr[0:60];
 
     //Results
@@ -131,9 +132,9 @@ module main();
     wire [0:64]targetVal = isAdd ? addRes : (isOr ? orRes : addiRes);
     wire [0:63]targetLink = pc + 4;
 
-    wire isLess = targetVal < 0;
-    wire isGreater = targetVal > 0;
-    wire isEqual = targetVal == 0;
+    wire isLess = targetVal[1:64] < 0;
+    wire isGreater = targetVal[1:64] > 0;
+    wire isEqual = targetVal[1:64] == 0;
     //wire isOver = (isLess & (gprs[ra] >= 0 & gprs[rb] >= 0)) | (isGreater & (gprs[ra] <= 0 & gprs[rb] <= 0));
     wire isOver = (targetVal[0] == targetVal[1]) ? 1 : 0;
 
@@ -176,7 +177,7 @@ module main();
     always @(posedge clk) begin
         if (isLd) begin
             gprs[targetReg] <= ldRes;
-        end else if (isLdu) begin
+        end else if (isLdu & ra != 0 & ra != rt) begin
             gprs[targetReg] <= ldRes;
             gprs[targetRegLdu] <= lduAddr;
         end
