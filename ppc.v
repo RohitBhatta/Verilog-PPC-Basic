@@ -114,11 +114,12 @@ module main();
     wire [0:63]ldRes = readData1;
 
     //Branching
-    wire [0:63]branchTarget = allBc ? (~isAA ? (pc + extendBD) : extendBD) : (allB ? ((~isAA ? (pc + extendLI) : extendLI)) : extendLR);
+    //wire [0:63]branchTarget = allBc ? (~isAA ? (pc + extendBD) : extendBD) : (allB ? ((~isAA ? (pc + extendLI) : extendLI)) : extendLR);
     /*wire less = (bo[0:2] == 1 & bi == 0 & cr[0] != 1) | (bo[0:2] == 3 & bi == 0 & cr[0] == 1);
     wire greater = (bo[0:2] == 1 & bi == 1 & cr[1] != 1) | (bo[0:2] == 3 & bi == 1 & cr[1] == 1);
     wire equals = (bo[0:2] == 1 & bi == 2 & cr[2] != 1) | (bo[0:2] == 3 & bi == 2 & cr[2] == 1);
     wire isBranching = allB | ((allBc | allBclr) & (less | greater | equals));*/
+    wire [0:63]branchTarget = allB ? (isAA ? extendLI : (pc + extendLI)) : (allBc ? (isAA ? extendBD : (pc + extendBD)) : extendLR);
     wire ctr_ok = bo[2] | ((ctr != 0) ^ bo[3]);
     wire cond_ok = bo[0] | (cr[bi] == bo[1]);
     wire isBranching = allB | ((allBc | allBclr) & ctr_ok & cond_ok);
@@ -192,7 +193,7 @@ module main();
 
     //Update ctr
     always @(posedge clk) begin
-        ctr <= bo[2] ? ctr : (ctr - 1);
+        ctr <= (bo[2] == 0) ? (ctr - 1) : ctr;
     end
 
 endmodule
