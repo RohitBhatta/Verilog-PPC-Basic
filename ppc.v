@@ -100,7 +100,7 @@ module main();
     //Special purpose registers
     reg [0:63]lr;
     reg [0:31]cr;
-    reg xer;
+    wire xer = isOver ? 1 : xer;
 
     wire [0:63]ldAddr = (ra == 0) ? extendDS : (gprs[ra] + extendDS);
     //wire [0:63]lduAddr = (ra == 0 | ra == rt) ? (pc + 4) : (gprs[ra] + extendDS);
@@ -168,8 +168,8 @@ module main();
             cr[1] <= 1;
         end else if (updateCR & isEqual) begin
             cr[2] <= 1;
-        end else if (updateXER & isOver) begin
-            xer <= 1;
+        end else if ((updateXER & isOver) | xer) begin
+            cr[3] <= 1;
         end
     end
 
