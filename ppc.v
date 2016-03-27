@@ -1,8 +1,12 @@
 module main();
 
+    integer i;
     initial begin
         $dumpfile("ppc.vcd");
         $dumpvars(0,main);
+	for (i = 0; i < 32; i = i + 1) begin
+            gprs[i] = 0;
+        end
     end
 
     wire clk;
@@ -24,7 +28,7 @@ module main();
     /* Your implementation goes here */
     /*********************************/
     reg [0:63]pc = 0;
-    reg [0:63]ctr;
+    reg [0:63]ctr = 0;
     wire [0:63]nextPC;
 
     always @(posedge clk) begin
@@ -98,8 +102,8 @@ module main();
     reg [0:63]gprs[0:31];
 
     //Special purpose registers
-    reg [0:63]lr;
-    reg [0:31]cr;
+    reg [0:63]lr = 0;
+    reg [0:63]cr = 0;
     wire xer = isOver ? 1 : xer;
 
     wire [0:63]ldAddr = (ra == 0) ? extendDS : (gprs[ra] + extendDS);
@@ -121,7 +125,7 @@ module main();
     wire isBranching = allB | ((allBc | allBclr) & (less | greater | equals));*/
     wire [0:63]branchTarget = allB ? (isAA ? extendLI : (pc + extendLI)) : (allBc ? (isAA ? extendBD : (pc + extendBD)) : extendLR);
     wire ctr_ok = bo[2] | ((ctr != 0) ^ bo[3]);
-    wire cond_ok = bo[0] | (cr[bi] == bo[1]);
+    wire cond_ok = bo[0] | (cr[bi + 32] == bo[1]);
     wire isBranching = allB | ((allBc | allBclr) & ctr_ok & cond_ok);
 
     wire updateRegs = allAdd | allOr | isAddi;
@@ -164,13 +168,13 @@ module main();
     //Update conditional register
     always @(posedge clk) begin
         if (updateCR & isLess) begin
-            cr[0] <= 1;
+            cr[32] <= 1;
         end else if (updateCR & isGreater) begin
-            cr[1] <= 1;
+            cr[33] <= 1;
         end else if (updateCR & isEqual) begin
-            cr[2] <= 1;
+            cr[34] <= 1;
         end else if ((updateXER & isOver) | xer) begin
-            cr[3] <= 1;
+            cr[35] <= 1;
         end
     end
 
