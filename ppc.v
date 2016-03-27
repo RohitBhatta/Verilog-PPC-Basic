@@ -197,7 +197,8 @@ module main();
     //Update xer
     always @(posedge clk) begin
         if (updateXER) begin
-            xer <= isOver | xer;
+            //xer <= isOver | xer;
+            xer <= isOver;
         end
     end
 
