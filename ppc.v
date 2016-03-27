@@ -128,13 +128,14 @@ module main();
     wire updateXER = allAdd & isOE;
     wire [0:4]targetReg = isOr ? ra : rt;
     wire [0:4]targetRegLdu = ra;
-    wire [0:63]targetVal = isAdd ? addRes : (isOr ? orRes : addiRes);
+    wire [0:64]targetVal = isAdd ? addRes : (isOr ? orRes : addiRes);
     wire [0:63]targetLink = pc + 4;
 
     wire isLess = targetVal < 0;
     wire isGreater = targetVal > 0;
     wire isEqual = targetVal == 0;
-    wire isOver = (isLess & (gprs[ra] >= 0 & gprs[rb] >= 0)) | (isGreater & (gprs[ra] <= 0 & gprs[rb] <= 0));
+    //wire isOver = (isLess & (gprs[ra] >= 0 & gprs[rb] >= 0)) | (isGreater & (gprs[ra] <= 0 & gprs[rb] <= 0));
+    wire isOver = (targetVal[0] == targetVal[1]) ? 1 : 0;
 
     //System call
     wire [0:63]scNum = gprs[0];
@@ -154,7 +155,7 @@ module main();
     //Update target register
     always @(posedge clk) begin
         if (updateRegs) begin
-            gprs[targetReg] <= targetVal;
+            gprs[targetReg] <= targetVal[1:64];
         end
     end
 
@@ -168,8 +169,6 @@ module main();
             cr[2] <= 1;
         end else if (updateXER & isOver) begin
             xer <= 1;
-        end else if (updateXER & ~isOver) begin
-            xer <= 0;
         end
     end
 
