@@ -203,26 +203,4 @@ module main();
         end
     end
 
-    always @(posedge clk) begin
-        if (allB | allBc | allBclr) begin
-            /*$display("%s%d\n", "cr[0]: ", cr[0]);
-            $display("%s%d\n", "cr[1]: ", cr[1]);
-            $display("%s%d\n", "cr[2]: ", cr[2]);
-            $display("%s%d\n", "cr[3]: ", cr[3]);*/
-            /*$display("%s%d\n", "targetVal: ", targetVal);
-            $display("%s%d\n", "targetReg: ", targetReg);
-            $display("%s%d\n", "addRes: ", addRes);
-            $display("%s%d\n", "gprs[4]: ", gprs[4]);*/
-            //$display("%s%d\n", "gprs[12]: ", gprs[12]);
-        end
-    end
-
-    always @(posedge clk) begin
-        if (allAdd) begin
-            /*$display("%s%d\n", "gprs[3]: ", gprs[3]);
-            $display("%s%d\n", "gprs[4]: ", gprs[4]);
-            $display("%s%d\n", "gprs[5]: ", gprs[5]);*/
-        end
-    end
-
 endmodule
