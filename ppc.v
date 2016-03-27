@@ -191,12 +191,16 @@ module main();
 
     //Update ctr
     always @(posedge clk) begin
-        ctr <= (bo[2] == 0) ? (ctr - 1) : ctr;
+        if (allBc & allBclr) begin
+            ctr <= (bo[2] == 0) ? (ctr - 1) : ctr;
+        end
     end
 
     //Update xer
     always @(posedge clk) begin
-        xer <= isOver ? 1 : xer;
+        if (updateXER) begin
+            xer <= isOver ? 1 : xer;
+        end
     end
 
 endmodule
