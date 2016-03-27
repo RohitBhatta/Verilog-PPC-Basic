@@ -99,8 +99,7 @@ module main();
 
     //Special purpose registers
     reg [0:63]lr;
-    //Might need to extend this or just make it 4 bits
-    reg [0:63]cr;
+    reg [0:31]cr;
     reg xer;
 
     wire [0:63]ldAddr = (ra == 0) ? extendDS : (gprs[ra] + extendDS);
