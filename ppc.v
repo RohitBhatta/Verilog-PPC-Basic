@@ -190,7 +190,7 @@ module main();
 
     //Update ctr
     always @(posedge clk) begin
-        if (allBc & allBclr) begin
+        if (allBc | allBclr) begin
             ctr <= (bo[2] == 0) ? (ctr - 1) : ctr;
         end
     end
