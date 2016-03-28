@@ -89,7 +89,7 @@ module main();
     wire isBclrl = (op == 19) & (xop10 == 16) & isLK;
     wire isLd = (op == 58) & (xop2 == 0) & ~isLK;
     wire isLdu = (op == 58) & (xop2 == 1) & isLK;
-    wire isSc = op == 17;
+    wire isSc = (op == 17) & inst[30];
     wire isNone = ~(allAdd | allOr | isAddi | allB | allBc | allBclr | isLd | isLdu | isSc); //Unexpected instruction
 
     //Combined instructions
