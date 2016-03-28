@@ -126,7 +126,7 @@ module main();
 
     wire updateRegs = allAdd | allOr | isAddi;
     wire updateLink = (allB & isLK) | (allBc & isLK) | (allBclr & isLK);
-    wire updateCR = (allAdd & isRC) | isOrDot;
+    wire updateCR = allAdd | allOr;
     wire updateXER = allAdd & isOE;
     wire [0:4]targetReg = allOr ? ra : rt;
     wire [0:4]targetRegLdu = ra;
@@ -165,7 +165,7 @@ module main();
             cr[0] <= isLess;
             cr[1] <= isGreater;
             cr[2] <= isEqual;
-            cr[3] <= xer;
+            cr[3] <= (isOE) ? (isOver | xer) : xer;
         end
     end
 
